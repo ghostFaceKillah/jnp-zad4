@@ -38,9 +38,12 @@ struct add_gear
 template <class G1, class G2>
 struct remove_gear
 {
-    static const unsigned int subtr_cannons = G1::cannons > G2::cannons ? G1::cannons - G2::cannons : 0;
-    static const unsigned int subtr_masts = G1::masts > G2::masts ? G1::masts - G2::masts : 0;
-    static const unsigned int subtr_oars = G1::oars > G2::oars ? G1::oars - G2::oars : 0;
+    static const unsigned int subtr_cannons = G1::cannons > G2::cannons ?
+                                              G1::cannons - G2::cannons : 0;
+    static const unsigned int subtr_masts = G1::masts > G2::masts ?
+                                            G1::masts - G2::masts : 0;
+    static const unsigned int subtr_oars = G1::oars > G2::oars ?
+                                           G1::oars - G2::oars : 0;
     typedef ShipGear<subtr_cannons, subtr_masts, subtr_oars> type;
 };
 
@@ -51,7 +54,8 @@ struct multiply_gear
     typedef ShipGear<G1::cannons * N, G1::masts * N, G1::oars * N> type;
 };
 
-/* Wyposażenie zawarte w G1 podzielone na N równych części (reszta z dzielenia przepada) */
+/* Wyposażenie zawarte w G1 podzielone na N równych części (reszta z dzielenia
+ * przepada) */
 template <class G1, unsigned int N>
 struct split_gear
 {
@@ -60,7 +64,8 @@ struct split_gear
 };
 
 
-/* Reprezentuje bandę okrętów, parametryzowaną wyposażeniem pojedynczego okrętu w oddziale */
+/* Reprezentuje bandę okrętów, parametryzowaną wyposażeniem pojedynczego okrętu
+ * w oddziale */
 template <class Gear> //extends ShipGear?
 class Squad
 {
@@ -200,31 +205,36 @@ public:
     template <class G>
 std::ostream & operator<<(std::ostream & os, const Squad<G> & sq)
 {
-    return os << "Ships: " << sq.get_count() << "; Ship gear: Cannons: " << G::cannons
-        << ", Masts: " << G::masts << ", Oars: " << G::oars;
+    return os << "Ships: " << sq.get_count() << "; Ship gear: Cannons: " <<
+        G::cannons << ", Masts: " << G::masts << ", Oars: " << G::oars;
 }
 
 
-/* Tworzy bandę nowych, mocniejszych okrętów. Każda cecha stanowi sumę odpowiednich cech
-   dwóch starych band, a liczność bandy określamy przez dostępną ilość sprzętu. */
-    template <class Gear, class OtherGear>
-Squad<typename add_gear<Gear, OtherGear>::type> const join_ships(Squad<Gear> const & sq1, Squad<OtherGear> const & sq2)
+/* Tworzy bandę nowych, mocniejszych okrętów. Każda cecha stanowi sumę
+ * odpowiednich cech dwóch starych band, a liczność bandy określamy przez
+ * dostępną ilość sprzętu.  */
+template <class Gear, class OtherGear>
+Squad<typename add_gear<Gear, OtherGear>::type> const join_ships(Squad<Gear>
+        const & sq1, Squad<OtherGear> const & sq2)
 {
     typedef typename add_gear<Gear, OtherGear>::type JointGear;
     int by_cannons, by_masts, by_oars;
 
     if (JointGear::cannons > 0)
-        by_cannons = (Gear::cannons * sq1.get_count() + OtherGear::cannons * sq2.get_count()) / JointGear::cannons;
+        by_cannons = (Gear::cannons * sq1.get_count() + OtherGear::cannons *
+                sq2.get_count()) / JointGear::cannons;
     else
         by_cannons = -1;
 
     if (JointGear::masts > 0)
-        by_masts = (Gear::masts * sq1.get_count() + OtherGear::masts * sq2.get_count()) / JointGear::masts;
+        by_masts = (Gear::masts * sq1.get_count() + OtherGear::masts *
+                sq2.get_count()) / JointGear::masts;
     else
         by_masts = by_cannons;
 
     if (JointGear::oars > 0)
-        by_oars = (Gear::oars * sq1.get_count() + OtherGear::oars * sq2.get_count()) / JointGear::oars;
+        by_oars = (Gear::oars * sq1.get_count() + OtherGear::oars *
+                sq2.get_count()) / JointGear::oars;
     else
         by_oars = by_masts;
 
@@ -244,25 +254,27 @@ Squad<typename add_gear<Gear, OtherGear>::type> const join_ships(Squad<Gear> con
     return Squad<JointGear>(std::min({by_cannons, by_masts, by_oars}));
 }
 
-/* Dzieli bandę na dwie nowe o tej samej liczności, złożone z mniejszych okrętów.
-   Każda cecha stanowi iloraz starej wartości cechy przez 2, reszta z dzielenia przepada. */
-    template <class Gear>
-Squad<typename split_gear<Gear, 2>::type> const split_ships(Squad<Gear> const & sq)
-{
+/* Dzieli bandę na dwie nowe o tej samej liczności, złożone z mniejszych
+ * okrętów.  Każda cecha stanowi iloraz starej wartości cechy przez 2, reszta z
+ * dzielenia przepada. */
+template <class Gear>
+Squad< typename split_gear<Gear, 2>::type> const
+split_ships(Squad<Gear> const & sq) {
     return Squad<typename split_gear<Gear, 2>::type>(sq.get_count());
 }
 
 template<class Gear>
 constexpr std::tuple<unsigned, unsigned, unsigned> to_tuple() { 
-    return std::tuple<unsigned, unsigned, unsigned> (Gear::cannons, Gear::masts, Gear::oars);
+    return std::tuple<unsigned, unsigned, unsigned>
+        (Gear::cannons, Gear::masts, Gear::oars);
 };
 
-/* Zwraca true, gdy łupem staje się banda o wyposażeniu Gear, false gdy OtherGear */
+/* Zwraca true, gdy łupem staje się banda o wyposażeniu Gear, false gdy
+ * OtherGear */
 template <class Gear, class OtherGear>
 struct is_bigger {
     static const bool value = to_tuple<Gear>() < to_tuple<OtherGear>();
 };
-
 
 template<class X, class Y, bool Cond >
 struct expected_booty_helper { 
